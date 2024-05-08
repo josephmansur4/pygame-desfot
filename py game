@@ -1,0 +1,9 @@
+# Carrega todos os assets de uma vez.
+def load_assets(img_dir):
+    assets = {}
+    assets[PLAYER_IMG] = pygame.image.load(path.join(img_dir, 'Meu_projeto.png')).convert_alpha()
+    assets[BLOCK_IMG] = pygame.image.load(path.join(img_dir, 'rodas.png')).convert_alpha()
+    assets[BACKGROUND_IMG] = pygame.image.load(path.join(img_dir, 'background-5.png')).convert()
+    pygame.mixer.music.load(path.join(img_dir, 'lotus72.mp3'))
+    pygame.mixer.music.set_volume(0.4)
+    return assets
