@@ -7,3 +7,56 @@ def load_assets(img_dir):
     pygame.mixer.music.load(path.join(img_dir, 'lotus72.mp3'))
     pygame.mixer.music.set_volume(0.4)
     return assets
+ Class que representa os blocos do cenário
+class Tile(pygame.sprite.Sprite):
+
+    # Construtor da classe.
+    def __init__(self, tile_img, x, y, speedx):
+        # Construtor da classe pai (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+
+        # Aumenta o tamanho do tile.
+        tile_img = pygame.transform.scale(tile_img, (100, 300))
+
+        # Define a imagem do tile.
+        self.image = tile_img
+        # Detalhes sobre o posicionamento.
+        self.rect = self.image.get_rect()
+
+        # Posiciona o tile
+        self.rect.x = x
+        self.rect.y = 0 
+
+        self.speedx = speedx
+
+    def update(self):
+        self.rect.x += self.speedx
+
+
+# Classe Jogador que representa o herói
+class Player(pygame.sprite.Sprite):
+
+    # Construtor da classe.
+    def __init__(self, player_img):
+
+        # Construtor da classe pai (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+        
+        self.state = STILL
+        # Aumenta o tamanho da imagem
+        player_img = pygame.transform.scale(player_img, (150, 100))
+
+        # Define a imagem do sprite. Nesse exemplo vamos usar uma imagem estática (não teremos animação durante o pulo)
+        self.image = player_img
+        # Detalhes sobre o posicionamento.
+        self.rect = self.image.get_rect()
+
+        # Começa no centro da janela
+        self.rect.centerx = WIDTH / 2
+        self.rect.bottom = int(HEIGHT * 7 / 8)
+
+        # Começa no topo da janela e cai até o chão
+        self.rect.centerx = WIDTH / 2
+        self.rect.top = 0
+
+        self.speedy = 0
