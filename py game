@@ -1,3 +1,8 @@
+import pygame
+import os
+import random
+
+
 # Carrega todos os assets de uma vez.
 def load_assets(img_dir):
     assets = {}
@@ -7,7 +12,7 @@ def load_assets(img_dir):
     pygame.mixer.music.load(path.join(img_dir, 'lotus72.mp3'))
     pygame.mixer.music.set_volume(0.4)
     return assets
- Class que representa os blocos do cenário
+ # Class que representa os blocos do cenário
 class Tile(pygame.sprite.Sprite):
 
     # Construtor da classe.
