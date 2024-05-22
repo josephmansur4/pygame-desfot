@@ -1,67 +1,105 @@
+# -*- coding: utf-8 -*-
+
 import pygame
-import os
 import random
+from os import path
 
+# Configuração inicial
+pygame.init()
+WIDTH, HEIGHT = 1024, 768
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('Exemplo de Fundo em Movimento')
 
-# Carrega todos os assets de uma vez.
-def load_assets(img_dir):
-    assets = {}
-    assets[PLAYER_IMG] = pygame.image.load(path.join(img_dir, 'Meu_projeto.png')).convert_alpha()
-    assets[BLOCK_IMG] = pygame.image.load(path.join(img_dir, 'rodas.png')).convert_alpha()
-    assets[BACKGROUND_IMG] = pygame.image.load(path.join(img_dir, 'background-5.png')).convert()
-    pygame.mixer.music.load(path.join(img_dir, 'lotus72.mp3'))
-    pygame.mixer.music.set_volume(0.4)
-    return assets
- # Class que representa os blocos do cenário
-class Tile(pygame.sprite.Sprite):
+# Cores
+BLACK = (0, 0, 0)
 
-    # Construtor da classe.
-    def __init__(self, tile_img, x, y, speedx):
-        # Construtor da classe pai (Sprite).
-        pygame.sprite.Sprite.__init__(self)
+# Constantes do jogo
+GRAVITY = 0.8
+JUMP_SIZE = 15
+GROUND = HEIGHT - 100
+FPS = 60
+PLAYER_START_POS = WIDTH // 4
+INITIAL_FREE_ZONE = PLAYER_START_POS + 200  # Zona livre inicial para evitar árvores no começo
 
-        # Aumenta o tamanho do tile.
-        tile_img = pygame.transform.scale(tile_img, (100, 300))
+# Carrega os assets
+img_dir = '/Users/jm/Downloads'
+raposa_img = pygame.image.load(path.join(img_dir, 'foto insper.jpeg')).convert_alpha()
+raposa_img = pygame.transform.scale(raposa_img, (120, 80))  # Tamanho da raposa
+arvore_img = pygame.image.load(path.join(img_dir, 'foto arvore.jpeg')).convert_alpha()
+arvore_img = pygame.transform.scale(arvore_img, (100, 200))  # Tamanho da árvore
 
-        # Define a imagem do tile.
-        self.image = tile_img
-        # Detalhes sobre o posicionamento.
+# Classes do jogo
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = raposa_img
+        self.rect = self.image.get_rect(center=(PLAYER_START_POS, HEIGHT - 50))
+        self.speedy = 0
+        self.jump_count = 0
+
+    def update(self):
+        self.speedy += GRAVITY
+        self.rect.y += self.speedy
+        if self.rect.bottom > GROUND:
+            self.rect.bottom = GROUND
+            self.speedy = 0
+            self.jump_count = 0  # Reset jump count on landing
+
+    def jump(self):
+        if self.jump_count < 2:  # Allows for double jumping
+            self.speedy = -JUMP_SIZE
+            self.jump_count += 1
+
+class Tree(pygame.sprite.Sprite):
+    def __init__(self, x, is_top):
+        super().__init__()
+        self.image = arvore_img
         self.rect = self.image.get_rect()
-
-        # Posiciona o tile
         self.rect.x = x
-        self.rect.y = 0 
-
-        self.speedx = speedx
+        self.rect.y = 0 if is_top else HEIGHT - self.rect.height
+        self.speedx = -5
 
     def update(self):
         self.rect.x += self.speedx
+        if self.rect.right < 0:
+            self.kill()
 
+# Função principal do jogo
+def game_screen(screen):
+    all_sprites = pygame.sprite.Group()
+    trees = pygame.sprite.Group()
+    player = Player()
+    all_sprites.add(player)
 
-# Classe Jogador que representa o herói
-class Player(pygame.sprite.Sprite):
+    # Gerar árvores com espaçamento inicial
+    for _ in range(10):
+        x = random.randint(INITIAL_FREE_ZONE, WIDTH)
+        is_top = random.choice([True, False])
+        tree = Tree(x, is_top)
+        trees.add(tree)
+        all_sprites.add(tree)
 
-    # Construtor da classe.
-    def __init__(self, player_img):
+    clock = pygame.time.Clock()
+    running = True
 
-        # Construtor da classe pai (Sprite).
-        pygame.sprite.Sprite.__init__(self)
-        
-        self.state = STILL
-        # Aumenta o tamanho da imagem
-        player_img = pygame.transform.scale(player_img, (150, 100))
+    while running:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    player.jump()
 
-        # Define a imagem do sprite. Nesse exemplo vamos usar uma imagem estática (não teremos animação durante o pulo)
-        self.image = player_img
-        # Detalhes sobre o posicionamento.
-        self.rect = self.image.get_rect()
+        all_sprites.update()
+        if pygame.sprite.spritecollide(player, trees, False):
+            print("Colisão detectada! Jogo terminado.")
+            running = False
 
-        # Começa no centro da janela
-        self.rect.centerx = WIDTH / 2
-        self.rect.bottom = int(HEIGHT * 7 / 8)
+        screen.fill(BLACK)  # Fundo preto
+        all_sprites.draw(screen)
+        pygame.display.flip()
 
-        # Começa no topo da janela e cai até o chão
-        self.rect.centerx = WIDTH / 2
-        self.rect.top = 0
+    pygame.quit()
 
-        self.speedy = 0
+game_screen(screen)
